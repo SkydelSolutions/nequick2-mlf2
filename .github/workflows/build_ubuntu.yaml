@@ -1,0 +1,46 @@
+name: Build Ubuntu
+
+on:
+  workflow_call:
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install Build Dependencies
+        run: |
+          sudo sed -i "s/# deb-src/deb-src/" /etc/apt/sources.list
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            cmake \
+            ninja-build
+
+      - name: Set environment variables
+        run: |
+          echo "ARTIFACT_NAME=nequick-2-mlf2-${{ runner.os }}-${{ runner.arch }}" >> "$GITHUB_ENV"
+          echo "CMAKE_BUILD_DIR=${{ runner.temp }}/build" >> "$GITHUB_ENV"
+          echo "CMAKE_INSTALL_DIR=${{ runner.temp }}/nequick-2-mlf2-${{ runner.os }}-${{ runner.arch }}" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: |
+          cmake \
+            -D CMAKE_BUILD_TYPE=Release \
+            -D CMAKE_INSTALL_PREFIX="${{ env.CMAKE_INSTALL_DIR }}" \
+            -B "${{ env.CMAKE_BUILD_DIR }}" \
+            -S .
+          cmake --build "${{ env.CMAKE_BUILD_DIR }}" --config Release --parallel "${{ env.NUMBER_OF_PROCESSORS }}"
+          cmake --install "${{ env.CMAKE_BUILD_DIR }}" --config Release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.CMAKE_INSTALL_DIR }}

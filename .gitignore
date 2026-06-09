@@ -1,0 +1,10 @@
+*.autosave
+*.pro.user
+
+bin/
+build/
+.vs
+CMakeSettings.json
+.editorconfig
+CMakeLists.txt.user
+*:Zone.Identifier

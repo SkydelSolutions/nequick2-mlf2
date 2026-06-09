@@ -1,0 +1,60 @@
+name: Build Windows
+
+on:
+  workflow_call:
+    inputs:
+      configuration:
+        required: true
+        type: string
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Install Build Dependencies
+        run: |
+          choco install -y strawberryperl
+
+      - name: Setup Ninja
+        uses: ashutoshvarma/setup-ninja@v1.1
+        with:
+          version: 1.10.2
+
+      - name: Build Setup
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: '14.29'
+
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v1.13
+        with:
+          cmake-version: '4.0.3'
+
+      - name: Set environment variables
+        run: |
+          echo "ARTIFACT_NAME=nequick-2-mlf2-${{ runner.os }}-${{ runner.arch }}-${{ inputs.configuration }}" >> "$env:GITHUB_ENV"
+          echo "CMAKE_BUILD_DIR=${{ runner.temp }}/build" >> "$env:GITHUB_ENV"
+          echo "CMAKE_INSTALL_DIR=${{ runner.temp }}/nequick-2-mlf2-${{ runner.os }}-${{ runner.arch }}" >> "$env:GITHUB_ENV"
+
+      - name: Build
+        run: |
+          cmake `
+            -G Ninja `
+            -D CMAKE_BUILD_TYPE=${{ inputs.configuration }} `
+            -D CMAKE_INSTALL_PREFIX="${env:CMAKE_INSTALL_DIR}" `
+            -B "${env:CMAKE_BUILD_DIR}" `
+            -S .
+          cmake --build "${env:CMAKE_BUILD_DIR}" --config ${{ inputs.configuration }} --parallel "${env:NUMBER_OF_PROCESSORS}"
+          cmake --install "${env:CMAKE_BUILD_DIR}" --config ${{ inputs.configuration }}
+      
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.CMAKE_INSTALL_DIR }}
