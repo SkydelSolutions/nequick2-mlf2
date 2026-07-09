@@ -10,11 +10,7 @@ if(NOT WIN32)
   set(CMAKE_CXX_COMPILER
       /usr/bin/g++-11
       CACHE FILEPATH "GNU C++ compiler")
-
-  set(SDX_CXX_FLAGS -fPIC)
-  foreach(flag ${SDX_CXX_FLAGS})
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${flag}>)
-  endforeach()
+  add_compile_options(-fPIC)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
