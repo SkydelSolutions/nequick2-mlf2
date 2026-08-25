@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
   NeQuick2MLF2
-  VERSION 1.0
-  DESCRIPTION "Ionospheric Model NeQuick2-MLF2 designed by Gustave Eiffel University"
+  VERSION 1.1
+  DESCRIPTION
+    "Ionospheric Model NeQuick2-MLF2 designed by Gustave Eiffel University"
   LANGUAGES CXX C)
 
 if(NOT WIN32)
